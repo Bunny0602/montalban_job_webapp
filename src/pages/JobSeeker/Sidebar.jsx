@@ -18,12 +18,11 @@ const Sidebar = ({ active, setActive, onLogout }) => {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // Auto-collapse only on mobile, not when maximizing
   useEffect(() => {
-    if (isMobile && !manualToggle) {
-      setCollapsed(true);
-    } else if (!isMobile && !manualToggle) {
-      setCollapsed(false);
+    if (!manualToggle) {
+      Promise.resolve().then(() => {
+        setCollapsed(isMobile);
+      });
     }
   }, [isMobile, manualToggle]);
 

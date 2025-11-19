@@ -20,10 +20,10 @@ const Sidebar = ({ active, setActive, onLogout }) => {
   }, []);
 
   useEffect(() => {
-    if (isMobile && !manualToggle) {
-      setCollapsed(true);
-    } else if (!isMobile && !manualToggle) {
-      setCollapsed(false);
+    if (!manualToggle) {
+      Promise.resolve().then(() => {
+        setCollapsed(isMobile);
+      });
     }
   }, [isMobile, manualToggle]);
 

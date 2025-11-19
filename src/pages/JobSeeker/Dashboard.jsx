@@ -20,7 +20,7 @@ const Dashboard = () => {
       console.log("No user data found, redirecting to login...");
       navigate("/login");
     } else {
-      setIsLoading(false);
+      Promise.resolve().then(() => setIsLoading(false));
     }
   }, [userData, navigate]);
 
