@@ -7,48 +7,36 @@ const Sidebar = ({ active, setActive, onLogout }) => {
     { id: "MyApplications", label: "My Applications", icon: "briefcase" },
   ];
 
-  const [collapsed, setCollapsed] = useState(false);
+  // responsive state
   const [isMobile, setIsMobile] = useState(false);
-  const [manualToggle, setManualToggle] = useState(false);
+  // control mobile sidebar visibility
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 900);
+    const onResize = () => setIsMobile(window.innerWidth < 768); // match admin: 768px
     onResize();
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
-
-  useEffect(() => {
-    if (!manualToggle) {
-      Promise.resolve().then(() => {
-        setCollapsed(isMobile);
-      });
-    }
-  }, [isMobile, manualToggle]);
 
   // Adjust the content margin so it never overlaps the sidebar
   useEffect(() => {
     const main = document.querySelector(".main-content");
     if (!main) return;
 
-    // compute sidebar width in px depending on collapsed / mobile state
-    const sidebarPx = isMobile ? 0 : (collapsed ? 76 : 220);
+    const sidebarPx = isMobile ? 0 : 220;
 
     if (isMobile) {
-      // mobile: sidebar overlays content, don't push — allow full width
       main.style.marginLeft = "0";
       main.style.maxWidth = "";
     } else {
-      // desktop: push content and constrain max width so it won't slip under sidebar
       main.style.marginLeft = `${sidebarPx}px`;
       main.style.maxWidth = `calc(100% - ${sidebarPx}px)`;
     }
 
-    // smooth transition and safe box sizing
     main.style.transition = "margin-left 0.22s ease, max-width 0.22s ease";
     main.style.boxSizing = "border-box";
 
-    // cleanup: restore styles when component unmounts
     return () => {
       if (main) {
         main.style.marginLeft = "";
@@ -57,7 +45,19 @@ const Sidebar = ({ active, setActive, onLogout }) => {
         main.style.boxSizing = "";
       }
     };
-  }, [collapsed, isMobile]);
+  }, [isMobile]);
+
+  // lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
 
   const Icon = ({ name, size = 18 }) => {
     const common = {
@@ -97,8 +97,33 @@ const Sidebar = ({ active, setActive, onLogout }) => {
   };
 
   return (
-    <aside className={`jobseeker-sidebar ${collapsed ? "collapsed" : ""}`} aria-label="Job seeker navigation">
-      <style>{`
+    <>
+      {/* Mobile hamburger - visible only on mobile when sidebar is closed */}
+      <button
+        className="mobile-toggle"
+        aria-label="Open menu"
+        onClick={() => setMobileOpen(true)}
+        style={{ display: isMobile && !mobileOpen ? undefined : "none" }}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+
+      {/* Backdrop when mobile sidebar open */}
+      {isMobile && mobileOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setMobileOpen(false)}
+          aria-hidden
+        />
+      )}
+
+      <aside
+        className={`jobseeker-sidebar ${isMobile && mobileOpen ? "mobile-open" : ""}`}
+        aria-label="Job seeker navigation"
+      >
+        <style>{`
         .jobseeker-sidebar {
           width: 220px;
           height: 100vh;
@@ -116,14 +141,10 @@ const Sidebar = ({ active, setActive, onLogout }) => {
           z-index: 50;
           color: #1f2d3d; /* base text color */
         }
-        .jobseeker-sidebar.collapsed { width: 76px; }
-
-        /* hide brand text when collapsed */
-        .jobseeker-sidebar.collapsed .brand-text { display: none; }
 
         .top { 
           display: flex; 
-          lign-items: center; 
+          align-items: center; 
           gap: 12px; 
           flex-shrink: 0; 
           border-bottom: 1px solid #eef4fb;
@@ -142,15 +163,6 @@ const Sidebar = ({ active, setActive, onLogout }) => {
         .brand-title { font-weight:800; color:#0d6efd; font-size:14px; }
         .brand-sub { font-size:12px; color:#6c757d; margin-top:2px; }
 
-        .toggle-btn {
-          margin-left:auto; background:transparent; border:none; cursor:pointer;
-          padding:6px; border-radius:8px; color:#0d6efd;
-          display:inline-flex; align-items:center; justify-content:center;
-          transition: transform .14s ease;
-        }
-        .toggle-btn .chev { transition: transform .18s ease; }
-        .toggle-btn[aria-pressed="true"] .chev { transform: rotate(180deg); }
-
         .nav { margin-top: 18px; display: flex; flex-direction: column; gap: 8px; flex: 0 0 auto; }
         .nav-item {
           display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px;
@@ -163,10 +175,7 @@ const Sidebar = ({ active, setActive, onLogout }) => {
           box-shadow: 0 10px 28px rgba(13,110,253,0.08);
           border-left: 4px solid #0d6efd;
         }
-        .nav-item.collapsed { justify-content:center; padding-left:6px; padding-right:6px; }
-        .nav-item.collapsed .label { display:none; }
 
-        /* icons: use currentColor so SVG strokes/fills follow .icon color */
         .nav .icon {
           display:inline-flex;
           align-items:center;
@@ -175,9 +184,7 @@ const Sidebar = ({ active, setActive, onLogout }) => {
           min-width: 20px;
         }
         .nav-item.active .icon { color: #0a58ca; } /* active icon color */
-        .nav-item.collapsed .icon { margin: 0; }
 
-        /* ensure SVGs scale and inherit color/stroke */
         .nav .icon svg { width: 18px; height: 18px; display:block; color: inherit; stroke: currentColor; fill: none; }
 
         .bottom { margin-top: auto; display:flex; flex-direction:column; gap:10px; }
@@ -199,8 +206,8 @@ const Sidebar = ({ active, setActive, onLogout }) => {
           text-overflow: ellipsis;
         }
 
-        /* MOBILE: sidebar overlays content (do NOT force .main-content) */
-        @media (max-width:900px) {
+        /* MOBILE: <= 768px behavior */
+        @media (max-width:768px) {
           .jobseeker-sidebar {
             position: fixed;
             z-index: 100;
@@ -208,67 +215,119 @@ const Sidebar = ({ active, setActive, onLogout }) => {
             left: 0;
             top: 0;
             bottom: 0;
-            transform: translateX(0);
+            transform: translateX(-100%);
             box-shadow: 8px 0 24px rgba(16,24,40,0.06);
+            transition: transform .26s cubic-bezier(.2,.9,.2,1), width .22s ease;
           }
-          /* Leave main-content styling to layout code / JS so it can decide whether to push or overlay */
-        }
-      `}</style>
 
-      <div className="top">
-        <div className="brand">
-          <div className="logo">JS</div>
-          {!collapsed && (
+          .jobseeker-sidebar.mobile-open {
+            transform: translateX(0);
+          }
+
+          /* mobile hamburger button (top-left) */
+          .mobile-toggle {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 110;
+            background: white;
+            border: 1px solid #eef4fb;
+            padding: 8px 10px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #1f2d3d;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(13,110,253,0.04);
+          }
+
+          /* close button inside mobile sidebar */
+          .mobile-close {
+            margin-left: auto;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+            color: #0d6efd;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          /* backdrop to dim content when sidebar is open */
+          .sidebar-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 90;
+            background: rgba(0,0,0,0.24);
+            backdrop-filter: none;
+          }
+        }
+
+        /* keep desktop styles intact */
+        @media (min-width:769px) {
+          .mobile-toggle { display: none; }
+        }
+        `}</style>
+
+        <div className="top">
+          <div className="brand">
+            <div className="logo">JS</div>
             <div className="brand-text">
               <div className="brand-title">Job Seeker</div>
               <div className="brand-sub">Dashboard</div>
             </div>
+          </div>
+
+          {/* close button: only visible on mobile when sidebar is open */}
+          {isMobile && mobileOpen && (
+            <button
+              className="mobile-close"
+              aria-label="Close menu"
+              onClick={() => setMobileOpen(false)}
+              style={{ display: isMobile && mobileOpen ? undefined : "none" }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
           )}
         </div>
 
-        <button
-          className="toggle-btn"
-          title={collapsed ? "Expand" : "Collapse"}
-          aria-pressed={collapsed}
-          onClick={() => {
-            setCollapsed((s) => !s);
-            setManualToggle(true);
-          }}
-        >
-          <svg className="chev" width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-      </div>
+        <nav className="nav">
+          {menuItems.map((m) => {
+            const isActive = active === m.id;
+            return (
+              <div
+                key={m.id}
+                onClick={() => {
+                  setActive(m.id);
+                  if (isMobile) setMobileOpen(false); // close on mobile navigation
+                }}
+                className={`nav-item ${isActive ? "active" : ""}`}
+              >
+                <span className="icon"><Icon name={m.icon} /></span>
+                <span className="label">{m.label}</span>
+              </div>
+            );
+          })}
+        </nav>
 
-      <nav className="nav">
-        {menuItems.map((m) => {
-          const isActive = active === m.id;
-          return (
-            <div
-              key={m.id}
-              onClick={() => setActive(m.id)}
-              className={`nav-item ${isActive ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
-            >
-              <span className="icon"><Icon name={m.icon} /></span>
-              <span className="label">{m.label}</span>
-            </div>
-          );
-        })}
-      </nav>
-
-      <div className="bottom">
-        <button className="logout" onClick={onLogout}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M16 17l5-5-5-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M21 12H9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M13 19H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          {!collapsed && <span>Logout</span>}
-        </button>
-        {!collapsed && <div className="help">Bunny</div>}
-      </div>
-    </aside>
+        <div className="bottom">
+          <button className="logout" onClick={onLogout}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M16 17l5-5-5-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M21 12H9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M13 19H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>Logout</span>
+          </button>
+          <div className="help">Bunny</div>
+        </div>
+      </aside>
+    </>
   );
 };
 

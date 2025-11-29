@@ -128,7 +128,7 @@ const Overview = () => {
               employerData = {
                 uid: employerId,
                 email: jobData.email || "",
-                companyName: jobData.companyName || "N/A",
+                companyName: jobData.companyName || jobData.fullName || "N/A",
                 fullName: jobData.fullName || "",
                 contactPerson: jobData.contactPerson || "",
                 contactNumber: jobData.contactNumber || "",
@@ -185,7 +185,7 @@ const Overview = () => {
     try {
       const jobRef = doc(db, "jobs", jobId);
       await updateDoc(jobRef, { approvalStatus: "approved" });
-      setSuccessMessage("✅ Job approved successfully!");
+      setSuccessMessage("Job approved successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
       
       // Refresh stats
@@ -198,7 +198,7 @@ const Overview = () => {
       }));
     } catch (err) {
       console.error("Error approving job:", err);
-      setErrorMessage("❌ Failed to approve job.");
+      setErrorMessage("Failed to approve job.");
       setTimeout(() => setErrorMessage(""), 3000);
     } finally {
       setActionLoading(null);
@@ -925,6 +925,21 @@ const Overview = () => {
             </div>
 
             <div className="modal-body">
+              {/* JOB IMAGE - DISPLAY IF UPLOADED */}
+              {selectedJob.jobImage ? (
+                <div style={{ marginBottom: 16 }}>
+                  <img 
+                    src={selectedJob.jobImage} 
+                    alt={selectedJob.jobTitle} 
+                    style={{ width: "100%", maxHeight: 280, objectFit: "cover", borderRadius: 10, border: "1px solid #eef4fb" }} 
+                  />
+                </div>
+              ) : (
+                <div style={{ marginBottom: 16, width: "100%", height: 200, background: "linear-gradient(135deg, #eaf7ef, #f7fbff)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", color: "#0d6efd", fontSize: 64, border: "1px solid #e6f0ff" }}>
+                  💼
+                </div>
+              )}
+
               <div className="job-detail-row">
                 <div className="job-detail-label">Status:</div>
                 <div className="badge badge-pending">Pending</div>

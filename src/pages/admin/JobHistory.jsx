@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { collection, query, onSnapshot, where, getDocs } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
 
 const JobHistory = () => {
   const [jobs, setJobs] = useState([]);
-  const [filteredJobs, setFilteredJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all"); 
@@ -13,7 +12,6 @@ const JobHistory = () => {
 
   // ===== FETCH ALL JOBS =====
   useEffect(() => {
-    setLoading(true);
     const q = query(collection(db, "jobs"));
 
     const unsubscribe = onSnapshot(
@@ -84,8 +82,8 @@ const JobHistory = () => {
     return () => unsubscribe();
   }, []);
 
-  // ===== APPLY FILTERS & SEARCH =====
-  useEffect(() => {
+  // ===== APPLY FILTERS & SEARCH (with useMemo) =====
+  const filteredJobs = useMemo(() => {
     let filtered = jobs;
 
     // Filter by status
@@ -95,15 +93,15 @@ const JobHistory = () => {
 
     // Search by job title or company
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+      const q = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (job) =>
-          job.jobTitle?.toLowerCase().includes(query) ||
-          job.employerInfo?.companyName?.toLowerCase().includes(query)
+          job.jobTitle?.toLowerCase().includes(q) ||
+          job.employerInfo?.companyName?.toLowerCase().includes(q)
       );
     }
 
-    setFilteredJobs(filtered);
+    return filtered;
   }, [jobs, filterStatus, searchQuery]);
 
   // ===== FORMAT DATE =====
@@ -198,6 +196,12 @@ const JobHistory = () => {
           color: #12263b;
           background: #fbfdff;
           min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+          .job-history-root {
+            padding-top: 70px;
+          }
         }
 
         .history-header {
@@ -571,6 +575,7 @@ const JobHistory = () => {
           margin: 0;
           font-size: 18px;
           font-weight: 800;
+          color: #12263b;
         }
 
         .modal-body {
@@ -859,7 +864,7 @@ const JobHistory = () => {
           >
             <div className="modal-header">
               <div>
-                <h3 style={{ margin: 0, color: "#0d6efd" }}>
+                <h3 style={{ margin: 0 }}>
                   {selectedJobDetail.jobTitle}
                 </h3>
                 <div style={{ fontSize: 13, color: "#6c757d", marginTop: 4 }}>
@@ -876,6 +881,21 @@ const JobHistory = () => {
             </div>
 
             <div className="modal-body">
+              {/* JOB IMAGE - DISPLAY IF UPLOADED */}
+              {selectedJobDetail.jobImage ? (
+                <div style={{ marginBottom: 16 }}>
+                  <img 
+                    src={selectedJobDetail.jobImage} 
+                    alt={selectedJobDetail.jobTitle} 
+                    style={{ width: "100%", maxHeight: 280, objectFit: "cover", borderRadius: 10, border: "1px solid #eef4fb" }} 
+                  />
+                </div>
+              ) : (
+                <div style={{ marginBottom: 16, width: "100%", height: 200, background: "linear-gradient(135deg, #eaf7ef, #f7fbff)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", color: "#0d6efd", fontSize: 64, border: "1px solid #e6f0ff" }}>
+                  💼
+                </div>
+              )}
+
               <div
                 style={{
                   padding: 12,

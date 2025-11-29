@@ -54,7 +54,7 @@ const UserManagement = () => {
           emailVerified: isEmailVerified,
           createdAt: userData.createdAt || null,
           updatedAt: userData.updatedAt || null,
-          companyName: userData.companyName || "",
+          companyName: userData.companyName || userData.fullName || "",
           contactPerson: userData.contactPerson || "",
           contactNumber: userData.contactNumber || userData.phone || "",
           barangay: userData.barangay || "",
@@ -228,7 +228,7 @@ const UserManagement = () => {
               {user.fullName || "N/A"}
             </h3>
             <p style={{ margin: "4px 0 0 0", fontSize: 12, color: "#6c757d" }}>
-              {isEmployer ? user.companyName || "N/A" : user.desiredJob || "N/A"}
+              {isEmployer ? user.companyName || user.fullName || "N/A" : user.desiredJob || "N/A"}
             </p>
             <div style={{ marginTop: 8 }}>
               {getVerificationBadge(user.emailVerified).icon} 

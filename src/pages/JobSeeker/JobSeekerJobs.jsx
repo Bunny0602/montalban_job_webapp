@@ -259,6 +259,18 @@ const JobSeekerJobs = () => {
 
   const hasActiveFilters = searchQuery || selectedBarangay || selectedSkills;
 
+  // ===== FORMAT DATE =====
+  const formatDate = (ts) => {
+    if (!ts) return "—";
+    try {
+      if (ts.toDate) return new Date(ts.toDate()).toLocaleDateString();
+      if (ts.seconds) return new Date(ts.seconds * 1000).toLocaleDateString();
+      return new Date(ts).toLocaleDateString();
+    } catch {
+      return "—";
+    }
+  };
+
   return (
     <div className="jobseeker-jobs-root">
       <style>{`
@@ -912,6 +924,10 @@ const JobSeekerJobs = () => {
 
                 <div className="job-content">
                   <h4 className="job-title">{job.jobTitle}</h4>
+
+                  <div style={{ fontSize: 12, color: "#6c757d", marginBottom: 8 }}>
+                    Date: {formatDate(job.createdAt || job.postedDate)}
+                  </div>
 
                   <div className="job-desc" title={job.jobDescription}>
                     {preview}{(job.jobDescription || "").length > 140 ? "..." : ""}

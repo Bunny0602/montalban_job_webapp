@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "../../firebase/firebaseConfig";
+import { auth, db } from "../../firebase/firebaseConfig";
 import { useNavigate } from "react-router-dom";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -24,15 +25,24 @@ const ForgotPassword = () => {
       setLoading(true);
       setMessage("");
       
-      // Send password reset email with redirect URL
-      const actionCodeSettings = {
-        url: `${window.location.origin}/action`,
-        handleCodeInApp: true,
-      };
+      // Check if account exists in users collection
+      const usersQuery = query(
+        collection(db, "users"),
+        where("email", "==", email.toLowerCase().trim())
+      );
+      const userSnapshot = await getDocs(usersQuery);
+
+      if (userSnapshot.empty) {
+        setMessage("❌ No account found with this email address.\n\nPlease register a new account to get started.");
+        setMessageType("error");
+        setLoading(false);
+        return;
+      }
+
+      // Account exists, send password reset email
+      await sendPasswordResetEmail(auth, email);
       
-      await sendPasswordResetEmail(auth, email, actionCodeSettings);
-      
-      setMessage("✅ Password reset link sent!\n\nPlease check your email for the reset link.\nThe link will expire in 1 hour.");
+      setMessage("Password reset link sent!\n\nPlease check your email for the reset link.\nThe link will expire in 1 hour.");
       setMessageType("success");
       setSubmitted(true);
       setEmail("");
@@ -45,9 +55,7 @@ const ForgotPassword = () => {
     } catch (error) {
       console.error("Error sending reset email:", error);
       
-      if (error?.code === "auth/user-not-found") {
-        setMessage("❌ No account found with this email address.\n\nPlease check and try again or register a new account.");
-      } else if (error?.code === "auth/invalid-email") {
+      if (error?.code === "auth/invalid-email") {
         setMessage("❌ Invalid email address format.");
       } else if (error?.code === "auth/too-many-requests") {
         setMessage("❌ Too many reset requests.\n\nPlease try again later.");
