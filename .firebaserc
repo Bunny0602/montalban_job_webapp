@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "montalban-employment-system"
-  }
+    "default": "montalban-employment-system",
+    "new": "montalban-posting"
+  },
+  "targets": {},
+  "etags": {}
 }

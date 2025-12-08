@@ -1057,12 +1057,6 @@ const JobSeekerProfile = () => {
               <img src={userFiles.photoBase64} alt="Profile" />
             </div>
             <div className="modal-footer">
-              <button 
-                className="btn btn-download"
-                onClick={() => downloadFile(userFiles.photoBase64, userFiles.photoName || "profile-photo")}
-              >
-                Download
-              </button>
               <button className="btn btn-cancel" onClick={() => setShowPhotoModal(false)}>
                 Close
               </button>
@@ -1091,12 +1085,6 @@ const JobSeekerProfile = () => {
               )}
             </div>
             <div className="modal-footer">
-              <button 
-                className="btn btn-download"
-                onClick={() => downloadFile(userFiles.resumeBase64, userFiles.resumeName || "resume")}
-              >
-                Download
-              </button>
               <button className="btn btn-cancel" onClick={() => setShowResumeModal(false)}>
                 Close
               </button>

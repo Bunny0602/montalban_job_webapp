@@ -149,12 +149,37 @@ const UserManagement = () => {
         } catch {
           // No files found
         }
-        setSelectedUserProfile({
-          ...userData,
+
+        // Map fields and provide sensible fallbacks so modal shows companyName correctly
+        const mappedUser = {
           id: user.id,
-          uid: user.id,
+          uid: userData.uid || user.id,
+          fullName: userData.fullName || "",
+          email: userData.email || "",
+          role: (userData.role || "").toLowerCase().replace(/_/g, " "),
+          status: userData.status || "Active",
+          emailVerified: userData.emailVerified === true || userData.emailVerified === "true",
+          createdAt: userData.createdAt || null,
+          updatedAt: userData.updatedAt || null,
+          companyName: userData.companyName || userData.fullName || "",
+          contactPerson: userData.contactPerson || "",
+          contactNumber: userData.contactNumber || userData.phone || "",
+          barangay: userData.barangay || "",
+          address: userData.address || "",
+          positionHiringFor: userData.positionHiringFor || "",
+          jobDescription: userData.jobDescription || "",
+          age: userData.age || "",
+          gender: userData.gender || "",
+          desiredJob: userData.desiredJob || "",
+          experience: userData.experience || "",
+          education: userData.education || "",
+          skills: userData.skills || "",
+          coverLetter: userData.coverLetter || "",
+          phone: userData.phone || "",
           userFiles: userFiles,
-        });
+        };
+
+        setSelectedUserProfile(mappedUser);
         setShowUserProfileModal(true);
       }
     } catch {

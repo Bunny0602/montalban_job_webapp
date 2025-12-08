@@ -984,12 +984,6 @@ const EmployerProfile = () => {
               <img src={userFiles.photoBase64} alt="Company Logo" />
             </div>
             <div className="modal-footer">
-              <button
-                className="btn btn-download"
-                onClick={() => downloadFile(userFiles.photoBase64, userFiles.photoName || "company-logo")}
-              >
-                Download
-              </button>
               <button className="btn btn-secondary" onClick={() => setShowLogoModal(false)}>
                 Close
               </button>
@@ -1018,12 +1012,6 @@ const EmployerProfile = () => {
               )}
             </div>
             <div className="modal-footer">
-              <button
-                className="btn btn-download"
-                onClick={() => downloadFile(userFiles.documentBase64, userFiles.documentName || "business-document")}
-              >
-                Download
-              </button>
               <button className="btn btn-secondary" onClick={() => setShowDocModal(false)}>
                 Close
               </button>

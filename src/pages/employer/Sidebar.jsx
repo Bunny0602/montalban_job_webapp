@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "../../firebase/firebaseConfig";
 
-const Sidebar = ({ active, setActive, onLogout }) => {
+const Sidebar = ({ active, setActive }) => {
   const menuItems = [
     { id: "Dashboard", label: "Dashboard", icon: "dashboard" },
     { id: "Post Job", label: "Post Job", icon: "briefcase" },
@@ -103,6 +105,31 @@ const Sidebar = ({ active, setActive, onLogout }) => {
         );
       default:
         return null;
+    }
+  };
+
+  // Replace previous onClick handler with this to fully end session
+  const handleLogout = async () => {
+    try {
+      // Sign out via Firebase Auth
+      await signOut(auth);
+    } catch (err) {
+      console.error("Sign out failed:", err);
+    }
+    const loginUrl = `/login?ts=${Date.now()}`;
+    try {
+      window.location.replace(loginUrl);
+    } catch {
+      // Fallback
+      window.location.href = loginUrl;
+    }
+  };
+
+  // handle keyboard activation for nav items
+  const handleNavKeyDown = (event, itemId) => {
+    if (event.key === "Enter" || event.key === " ") {
+      setActive(itemId);
+      if (isMobile) setMobileOpen(false);
     }
   };
 
@@ -399,7 +426,7 @@ const Sidebar = ({ active, setActive, onLogout }) => {
                 className={`nav-item ${isActive ? "active" : ""}`}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (setActive(m.id), isMobile && setMobileOpen(false))}
+                onKeyDown={(event) => handleNavKeyDown(event, m.id)}
               >
                 <span className="icon">
                   <Icon name={m.icon} />
@@ -411,7 +438,7 @@ const Sidebar = ({ active, setActive, onLogout }) => {
         </nav>
 
         <div className="bottom">
-          <button className="logout" onClick={onLogout} title="Logout">
+          <button className="logout" onClick={handleLogout} title="Logout">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M16 17l5-5-5-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M21 12H9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
@@ -419,7 +446,6 @@ const Sidebar = ({ active, setActive, onLogout }) => {
             </svg>
             <span>Logout</span>
           </button>
-          <div className="help">Employer</div>
         </div>
       </aside>
     </>

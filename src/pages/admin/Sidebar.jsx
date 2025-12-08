@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "../../firebase/firebaseConfig";
 
-const Sidebar = ({ active, setActive, onLogout }) => {
+const Sidebar = ({ active, setActive }) => {
   const menuItems = [
     { id: "Dashboard", label: "Dashboard", icon: "dashboard" },
     { id: "Job History", label: "Job Records", icon: "jobHistory" },
@@ -96,6 +98,23 @@ const Sidebar = ({ active, setActive, onLogout }) => {
         );
       default:
         return null;
+    }
+  };
+
+  // Perform Firebase sign-out and force navigation to login so Back cannot return to protected pages
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error("Sign out failed:", err);
+    }
+
+    const loginUrl = `/login?ts=${Date.now()}`;
+    try {
+      // replace avoids creating a history entry
+      window.location.replace(loginUrl);
+    } catch {
+      window.location.href = loginUrl;
     }
   };
 
@@ -319,7 +338,7 @@ const Sidebar = ({ active, setActive, onLogout }) => {
         </nav>
 
         <div className="bottom">
-          <button className="logout" onClick={onLogout}>
+          <button className="logout" onClick={handleLogout}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M16 17l5-5-5-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M21 12H9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
@@ -327,7 +346,6 @@ const Sidebar = ({ active, setActive, onLogout }) => {
             </svg>
             <span>Logout</span>
           </button>
-          <div className="help"></div>
         </div>
       </aside>
     </>
