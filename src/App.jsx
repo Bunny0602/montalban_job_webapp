@@ -12,11 +12,13 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import JobSeekerDashboard from "./pages/JobSeeker/Dashboard";
 import EmployerDashboard from "./pages/employer/Dashboard";
 
+import LandingPage from "./Landing/LandingPage";
+
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         
